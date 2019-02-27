@@ -16,7 +16,7 @@ In the following software and hardware list, you can run the code file in this r
 | ------------------------------------ | ----------------------------------- |
 | Music21, Anaconda Package Python 2.x/3.x, TensorFlow, Keras, numpy, glob | Ubuntu 16.04 or greater |
 
-* To install the  the following packages using `pip`:
+* Use `pip` to install this packages:
 
 E.g.
 
