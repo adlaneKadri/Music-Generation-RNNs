@@ -5,7 +5,7 @@ In this project we are focusing on generating music automatically using Recurren
     - recover the notes played in each midi file
     - data processing
   * Training
-  * predection 
+  * Prediction 
 
 
 ## Requirements
