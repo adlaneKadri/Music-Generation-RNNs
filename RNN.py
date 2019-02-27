@@ -1,9 +1,13 @@
+import time
+
 import music21 as mc
 import glob
-import time
 import  numpy as np
-#from keras.utils import np_utils
+from tensorflow.python.estimator import keras
 from tensorflow.python.keras.utils import np_utils
+from keras.models import Sequential
+from keras.layers import Dense, Activation, Dropout, LSTM
+from keras.callbacks import ModelCheckpoint
 
 """
  getNotes :  - return a liste of notes  => [A2#, G3, F2-, [A3, B3, C3#] ..................]
@@ -11,7 +15,7 @@ from tensorflow.python.keras.utils import np_utils
 """
 def getNotes():
     notes = []
-
+    #print("enter getNote")
     for fileName in glob.glob("midiData/*.mid"):
         #each file.midi to format => <music21.stream.Score 0x7fd9712bba20>
         midiFile = mc.converter.parse(fileName)
@@ -33,6 +37,7 @@ def getNotes():
                 #played Chord, we have to encode id each note alone
                 notes.append('.'.join(str(n) for n in event.normalOrder))
 
+    #print("end getNote")
     return notes
 
 
@@ -42,6 +47,7 @@ def getNotes():
 """
 def getData(data,dataMaped,sq_len):
 
+    #print("enter getDATA")
     network_X = []
     network_Y = []
 
@@ -50,6 +56,7 @@ def getData(data,dataMaped,sq_len):
         network_X.append([dataMaped[key] for key in data[i:i + sq_len]])
         network_Y.append(dataMaped[data[i + sq_len]])
 
+   # print("end getDATA")
     return  network_X,network_Y
 
 
@@ -58,9 +65,9 @@ def getData(data,dataMaped,sq_len):
                         using the retured lists for the trainig fase, after treat it (normalization,..)
 """
 
-def getPreparedData():
-    notes = getNotes()
+def getPreparedData(notes):
 
+    #print("enter preparedDATA")
     # get all pitch names
     mapedNote = dict((element, num+1) for num, element in enumerate(sorted(set(item for item in notes))))
 
@@ -79,8 +86,63 @@ def getPreparedData():
     # data normalization
     network_X = network_X / float(len(set(notes)))
     network_Y = np_utils.to_categorical(network_Y)
-    print("Fin preparation données")
+    #print("end preparedDATA")
     return network_X,network_Y
 
 
-getPreparedData()
+def modelLSTM(netINPUT, notesAmount):
+    # sequential model is linear stack of layers
+    """create a Sequential by passing a list of layer instances """
+
+    #print("enter modelLSTM")
+    model = Sequential(
+        [
+            LSTM(
+                512,
+                input_shape=(netINPUT.shape[1], netINPUT.shape[2]),
+                return_sequences=True
+            ),
+            Dropout(0.3),
+            LSTM(512, return_sequences=True),
+            Dropout(0.3),
+            LSTM(512),
+            Dense(256),
+            Dropout(0.3),
+            #number of neurals on the Layer before the last layer is equal to the number of notes (without occurrence)
+            Dense(notesAmount),
+            #Softmax is often used for classification in the output layer
+            Activation('softmax')
+        ]
+    )
+
+    #configure the learning proces, For a multi-class classification problem
+
+    model.compile(
+        optimizer='rmsprop',
+        loss='categorical_crossentropy',
+        metrics=['accuracy']
+    )
+
+    #print("end modelLSTM")
+    return model
+
+
+def training(model, input, output):
+    model.fit(input, output, epochs=200, batch_size=64)
+
+def lunch():
+    """ lunch """
+    notes = getNotes()
+
+    # get number of notes with eliminated occurence
+    numberOfNotes = len(set(notes))
+
+    _input, _output = getPreparedData(notes)
+
+    model = modelLSTM(_input, numberOfNotes)
+    print(_input.shape)
+    print(_output.shape)
+    print(numberOfNotes)
+    training(model, _input, _output)
+
+lunch()
