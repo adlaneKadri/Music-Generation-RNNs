@@ -71,17 +71,17 @@ def getPreparedData(notes):
     # get all pitch names
     mapedNote = dict((element, num+1) for num, element in enumerate(sorted(set(item for item in notes))))
 
-    sq_len = 100
+    batch_size = 100
     #sq_len = input("tap length of each sequence to predict the next note after it")
-    len_ = len(notes) - sq_len
+    len_ = len(notes) - batch_size
 
     # create input  and  outputs sequences :
-    network_X, network_Y = getData(notes,mapedNote,sq_len)
+    network_X, network_Y = getData(notes,mapedNote,batch_size)
 
     sizeInput = len(network_X)
 
     # reshape the input into a format compatible with LSTM layers - get the the transposed matrix of network_X
-    network_X = np.reshape(network_X, (sizeInput, sq_len, 1))
+    network_X = np.reshape(network_X, (sizeInput, batch_size, 1))
 
     # data normalization
     network_X = network_X / float(len(set(notes)))
@@ -109,7 +109,7 @@ def modelLSTM(netINPUT, notesAmount):
             Dense(256),
             Dropout(0.3),
             #number of neurals on the Layer before the last layer is equal to the number of notes (without occurrence)
-            Dense(notesAmount),
+            Dense(notesAmount+1),
             #Softmax is often used for classification in the output layer
             Activation('softmax')
         ]
@@ -139,10 +139,11 @@ def lunch():
 
     _input, _output = getPreparedData(notes)
 
+
     model = modelLSTM(_input, numberOfNotes)
-    print(_input.shape)
-    print(_output.shape)
-    print(numberOfNotes)
+    #print(_input.shape)
+    #print(_output.shape)
+    #print(numberOfNotes)
     training(model, _input, _output)
 
 lunch()
