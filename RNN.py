@@ -71,9 +71,8 @@ def getPreparedData(notes):
     # get all pitch names
     mapedNote = dict((element, num+1) for num, element in enumerate(sorted(set(item for item in notes))))
 
-    batch_size = 100
     #sq_len = input("tap length of each sequence to predict the next note after it")
-    len_ = len(notes) - batch_size
+    batch_size = 100
 
     # create input  and  outputs sequences :
     network_X, network_Y = getData(notes,mapedNote,batch_size)
@@ -141,9 +140,9 @@ def lunch():
 
 
     model = modelLSTM(_input, numberOfNotes)
-    #print(_input.shape)
-    #print(_output.shape)
-    #print(numberOfNotes)
+    print(_input.shape)
+    print(_output.shape)
+    print(numberOfNotes)
     training(model, _input, _output)
 
 lunch()
